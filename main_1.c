@@ -1,6 +1,3 @@
-#define FALSE 0
-#define TRUE 1
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <termios.h>
@@ -26,6 +23,8 @@ char text[80];
 char in[sizeof(text)] = "";
 int iOpen;
 char data[80][20];
+struct termios oldt, newt;
+
 
 enum MODES{
 	COMMAND_MODE, INSERT_MODE};
@@ -35,6 +34,13 @@ int main(int argc, char *argv[]){
 	enum MODES mode = COMMAND_MODE;
 
 	printf("Please press any key.\n");
+
+//	struct termios oldt, newt;
+	tcgetattr(STDIN_FILENO, &oldt);
+	newt = oldt;
+	newt.c_lflag &= (~ICANON);
+	newt.c_lflag &= (~ECHO);
+	tcsetattr(STDIN_FILENO, TCSANOW, &newt);
 
 	while(loop)
 		{
@@ -64,6 +70,12 @@ printf("1");
 		if(mode == INSERT_MODE){
 			system("clear");
 
+			tcgetattr(STDIN_FILENO, &oldt);
+			newt = oldt;
+			newt.c_lflag = ECHO; 
+			newt.c_lflag &= ~ICANON;
+			tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+
 			sprintf(buff, "\033[%02d;%02dH%02d:%02d", 0, 60, cur_line, cur_col);
 			fputs(buff, stdout);
 			sprintf(buff, "<INSERT MODE>\033[%02d;%02dH", cur_line, cur_col);
@@ -84,7 +96,7 @@ printf("1");
 					write(iOpen, text, strlen(text));
 					close(iOpen);
 					printf("\nsave.\n\n");
-				}
+					}
 				else{
 					printf("\nERROR!\n");
 				}
@@ -109,15 +121,25 @@ printf("2");
 		else if(mode == COMMAND_MODE){
 				system ("clear");
 
+/*				tcgetattr(STDIN_FILENO, &oldt);
+				newt = oldt;
+				newt.c_lflag = ICANON;
+				tcsetattr(STDIN_FILENO, TCSANOW, &newt);*/
+
 				iOpen = open("editor.txt", O_RDONLY);
 
 				if(iOpen > 0){
 					if(text != EOF){
+						tcgetattr(STDIN_FILENO, &oldt);
+						newt = oldt;
+						newt.c_lflag = ECHO;
+						tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+
 						read(iOpen, in, sizeof(text));
-						close(iOpen);
 						puts(in);
-						puts(text);
-						loop1 = 1;
+						close(iOpen);
+//						puts(in);
+						loop1 = 1;					
 						MovingCursor();
 					}
 				}
@@ -133,7 +155,7 @@ printf("2");
 	}
 	return 0;
 }
-
+	 
 int MovingCursor(){
 	char buff[255];
 	enum MODES mode = COMMAND_MODE;
@@ -148,10 +170,11 @@ int MovingCursor(){
 
 	fputs("\033[2J", stdout);
 	fputs("\033[0;0H", stdout);
-	struct termios oldt, curt, newt;
+
 	tcgetattr (STDIN_FILENO, &oldt);
 	newt = oldt;
-	newt.c_lflag &= ~(ICANON|ECHO);
+	newt.c_lflag &= ~ICANON;
+	newt.c_lflag &= ~ECHO;
 	tcsetattr (STDIN_FILENO, TCSANOW, &newt);
 
 		sprintf(buff, "\033[%02d;%02dH%02d:%02d", 0, 60, cur_line, cur_col);
