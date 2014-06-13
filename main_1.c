@@ -64,7 +64,7 @@ int main(int argc, char *argv[]){
 					exit(0);
 				break;
 			}
-printf("1");
+
 		fflush(stdin);
 		
 		if(mode == INSERT_MODE){
@@ -123,7 +123,7 @@ printf("1");
 				else{
 					printf("\nERROR!\n");
 				}
-printf("2");
+
 				key2 = getchar();
 				switch(key2){
 					case 'c':
@@ -156,7 +156,7 @@ printf("2");
 						exit(1);
 					break;
 				}
-//			fflush(stdin);
+			fflush(stdin);
 		}
 
 		else if(mode == COMMAND_MODE){
@@ -246,7 +246,7 @@ int MovingCursor(){
 		key = getchar();
 
 		if(mode == COMMAND_MODE){
-//printf("3");
+
 				switch(key){
 					case 'a':
 					case 'A':
@@ -288,7 +288,7 @@ int MovingCursor(){
 					break;
 				}
 				}//end switch
-//printf("4");
+
 				sprintf(buff, "\033[%02d;%02dH%02d:%02d", 0, 60, cur_line, cur_col);
 				fputs(buff, stdout);
 				sprintf(buff, "\033[%02d;%02dH", cur_line, cur_col);
@@ -298,5 +298,5 @@ int MovingCursor(){
 	newt = oldt;
 	newt.c_lflag = (ICANON|ECHO);
 	tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
-printf("5");
+
 	}
