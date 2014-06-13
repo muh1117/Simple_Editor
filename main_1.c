@@ -16,13 +16,15 @@ const int max_col = 80;
 char key;
 char key1;
 char key2;
+int num;
 int loop = 1;
 int loop1 = 1;
 int loop2 = 1;
-char text[80];
+char text[80][20];
+//char temp[80];
 char in[sizeof(text)] = "";
 int iOpen;
-char data[80][20];
+//char data[80][20];
 struct termios oldt, newt;
 
 
@@ -35,7 +37,6 @@ int main(int argc, char *argv[]){
 
 	printf("Please press any key.\n");
 
-//	struct termios oldt, newt;
 	tcgetattr(STDIN_FILENO, &oldt);
 	newt = oldt;
 	newt.c_lflag &= (~ICANON);
@@ -45,7 +46,6 @@ int main(int argc, char *argv[]){
 	while(loop)
 		{
 		key1=getchar();
-		//key1=getch();
 		switch(key1)
 			{
 				case 'i':
@@ -70,6 +70,7 @@ printf("1");
 		if(mode == INSERT_MODE){
 			system("clear");
 
+//			char enter[10] = "\n";
 			tcgetattr(STDIN_FILENO, &oldt);
 			newt = oldt;
 			newt.c_lflag = ECHO; 
@@ -81,41 +82,81 @@ printf("1");
 			sprintf(buff, "<INSERT MODE>\033[%02d;%02dH", cur_line, cur_col);
 			fputs(buff, stdout);
 			
-			iOpen = open("editor.txt", O_RDWR|O_CREAT, 0644);
+//			iOpen = open("editor.txt", O_RDWR|O_CREAT, 0644);
 
-			if(iOpen > 0){
+			iOpen = fopen("editor_fopen.txt", "w+");
+
+			if(iOpen){
 				cur_line++;
-				data[cur_col - 1][cur_line - 1] = text;
+				text[cur_col - 1][cur_line - 1];
 				if(cur_col>max_col){
 						cur_col=1;
 						cur_line++;
 						if(cur_line>max_line) cur_line = max_line;
 					}
-					gets(text);
-					//puts(text);
-					write(iOpen, text, strlen(text));
-					close(iOpen);
+//					text = {"\n"};
+//					write(iOpen, text, strlen(text));
+//					text = {0, };
+		//			gets(text);
+					if(iOpen){
+						fread(text, 80, 20, iOpen);
+	//					for(num = 0; num < cur_line-1; num++){
+							printf("%s \n", text);}
+	//						temp = text;
+							fwrite(text, strlen(text), 1, iOpen);
+							fwrite("\n", strlen("\n"), 1, iOpen);
+	//					}
+	//				}
+//					fwrite(text, strlen(text), 1, iOpen);
+					scanf("%s", &text);
+//					fwrite("\n", strlen("\n"), 1, iOpen);
+					fwrite(text, strlen(text), 20 , iOpen);
+//					close(iOpen);
+					fclose(iOpen);
 					printf("\nsave.\n\n");
+
+					tcgetattr(STDIN_FILENO, &oldt);
+					newt = oldt;
+					newt.c_lflag &= ~ECHO;
+					tcsetattr(STDIN_FILENO, TCSANOW, &newt);
 					}
 				else{
 					printf("\nERROR!\n");
 				}
 printf("2");
 				key2 = getchar();
-				//key2=getch();
 				switch(key2){
 					case 'c':
 					case 'C':
 						mode = COMMAND_MODE;
 					break;
 
+/*					case 'n':
+					case 'N':
+						enter = getchar();
+							switch(enter){
+							case '13':
+								iOpen = open("editor.txt", O_RDWR, 0644);
+//								gets(enter);
+								
+								close(iOpen);
+							break;
+
+							default:
+							break;
+						}
+				break;*/
+
 					case 'q':
 					case 'Q':
-						//loop1=0;
+						tcgetattr(STDIN_FILENO, &oldt);
+						newt = oldt;
+						newt.c_lflag = ECHO;
+						tcsetattr(STDIN_FILENO, TCSANOW, &newt);
 						exit(1);
 					break;
 				}
-			fflush(stdin);
+//			fflush(stdin);
 		}
 
 		else if(mode == COMMAND_MODE){
@@ -126,28 +167,35 @@ printf("2");
 				newt.c_lflag = ICANON;
 				tcsetattr(STDIN_FILENO, TCSANOW, &newt);*/
 
-				iOpen = open("editor.txt", O_RDONLY);
+//				iOpen = open("editor.txt", O_RDONLY);
 
-				if(iOpen > 0){
-					if(text != EOF){
+				iOpen = fopen("editor_fopen.txt", "r");
+
+				if(iOpen){
+//					if(text != EOF){
 						tcgetattr(STDIN_FILENO, &oldt);
 						newt = oldt;
 						newt.c_lflag = ECHO;
+						newt.c_lflag = ICANON;
 						tcsetattr(STDIN_FILENO, TCSANOW, &newt);
 
-						read(iOpen, in, sizeof(text));
-						puts(in);
-						close(iOpen);
+		//				read(iOpen, in, sizeof(text));
+//						fread(text, 80, 1, iOpen);
+						
+//						printf("%s",text);
 //						puts(in);
+						//close(iOpen);
+//						fclose(iOpen);
 						loop1 = 1;					
 						MovingCursor();
-					}
+					//}
 				}
-				else{
-					printf("\nERROR!\n\n");
-				}
+//				else{
+//					printf("\nERROR!\n\n");
+//				}
 				
 		}
+
 		else{
 				printf("error");
 				exit(-1);
@@ -171,6 +219,15 @@ int MovingCursor(){
 	fputs("\033[2J", stdout);
 	fputs("\033[0;0H", stdout);
 
+	if(iOpen){
+		fread(text, 80, 1, iOpen);
+	//	for(num = 0; num < cur_line-1; num++)
+	//	{
+			printf("%s", text);
+	//	}
+	}
+	fclose(iOpen);
+
 	tcgetattr (STDIN_FILENO, &oldt);
 	newt = oldt;
 	newt.c_lflag &= ~ICANON;
@@ -189,7 +246,7 @@ int MovingCursor(){
 		key = getchar();
 
 		if(mode == COMMAND_MODE){
-printf("3");
+//printf("3");
 				switch(key){
 					case 'a':
 					case 'A':
@@ -223,18 +280,23 @@ printf("3");
 
 					case 'q':
 					case 'Q':
+						tcgetattr(STDIN_FILENO, &oldt);
+						newt = oldt;
+						newt.c_lflag = ECHO;
+						tcsetattr(STDIN_FILENO, TCSANOW, &newt);
 						exit(1);
 					break;
 				}
 				}//end switch
-printf("4");
+//printf("4");
 				sprintf(buff, "\033[%02d;%02dH%02d:%02d", 0, 60, cur_line, cur_col);
 				fputs(buff, stdout);
 				sprintf(buff, "\033[%02d;%02dH", cur_line, cur_col);
 				fputs(buff, stdout);
 			}
+	tcgetattr(STDIN_FILENO, &oldt);
+	newt = oldt;
+	newt.c_lflag = (ICANON|ECHO);
 	tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
 printf("5");
 	}
-//	return 0;
-//}
